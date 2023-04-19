@@ -88,6 +88,25 @@ class R2
     }
 
     /**
+     * 获取对象
+     * @param string $name 名称
+     * @param array $options 选项
+     * @author Verdient。
+     */
+    public function getObject($name, $options = [])
+    {
+        $request = $this
+            ->request($name)
+            ->setMethod('GET')
+            ->setQuery($options);
+        $res = $request->send();
+        if (!$res->getIsOK()) {
+            throw new Exception($res->getErrorMessage());
+        }
+        return $res;
+    }
+
+    /**
      * 枚举对象
      * @param string $name 名称
      * @param string $content 内容
