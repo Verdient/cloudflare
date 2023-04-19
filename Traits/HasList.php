@@ -6,6 +6,7 @@ namespace Verdient\Cloudflare\Traits;
 
 use Exception;
 use Iterator;
+use Verdient\Cloudflare\API\Response;
 
 /**
  * 包含列表
@@ -19,7 +20,7 @@ trait HasList
      * @return Response
      * @author Verdient。
      */
-    public function list($options = [])
+    public function list($options = []): Response
     {
         return $this
             ->request('')
