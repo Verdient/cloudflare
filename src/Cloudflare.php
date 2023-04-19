@@ -7,7 +7,7 @@ namespace Verdient\Cloudflare;
 use Exception;
 use Verdient\Cloudflare\R2\R2;
 use Verdient\Cloudflare\Traits\Configurable;
-use Verdient\Cloudflare\Zone\Zone;
+use Verdient\Cloudflare\Zone;
 
 /**
  * Cloudflare
@@ -40,12 +40,6 @@ class Cloudflare
      * @author Verdient。
      */
     protected $kvNamespaceId;
-
-    /**
-     * @var string R2接入点
-     * @author Verdient。
-     */
-    protected $r2Endpoint = 'r2.cloudflarestorage.com';
 
     /**
      * @var string R2文件夹
@@ -96,31 +90,47 @@ class Cloudflare
      * @return mixed
      * @author Verdient。
      */
-    protected function client($class)
+    protected function _client($class, ...$options)
     {
-        if (!isset($this->cachedClients[$class])) {
-            $this->cachedClients[$class] = new $class($this);
+        $key = serialize([$class, $options]);
+        if (!isset($this->cachedClients[$key])) {
+            $this->cachedClients[$key] = new $class(...$options);
         }
-        return $this->cachedClients[$class];
+        return $this->cachedClients[$key];
     }
 
     /**
      * R2
+     * @param string $bucket 存储桶
      * @return R2
      * @author Verdient。
      */
-    public function r2(): R2
+    public function r2($bucket = null): R2
     {
-        return $this->client(R2::class);
+        if (!$bucket) {
+            $bucket = $this->r2Bucket;
+        }
+        return $this->_client(R2::class, $this->accountId, $bucket, $this->r2AccessKey, $this->r2AccessSecret);
     }
 
     /**
-     * Zone
+     * 域
      * @return Zone
-     * @author Veedient。
+     * @author Verdient。
      */
     public function zone()
     {
-        return $this->client(Zone::class);
+        return $this->_client(Zone::class, $this->apiAuthorization);
+    }
+
+    /**
+     * DNS
+     * @param string $zoneIdentifier 域编号
+     * @return DNS
+     * @author Verdient。
+     */
+    public function dns($zoneIdentifier)
+    {
+        return $this->_client(DNS::class, $zoneIdentifier, $this->apiAuthorization);
     }
 }

@@ -15,7 +15,7 @@ use Verdient\Cloudflare\API\Response;
 trait HasList
 {
     /**
-     * 获取域名列表
+     * 获取列表
      * @param array $options 参数
      * @return Response
      * @author Verdient。
@@ -23,7 +23,7 @@ trait HasList
     public function list($options = []): Response
     {
         return $this
-            ->request('')
+            ->request()
             ->setMethod('GET')
             ->setQuery($options)
             ->send();
@@ -31,18 +31,20 @@ trait HasList
 
     /**
      * 批量遍历元素
+     * @return Iterator
      * @author Verdient。
      */
-    public function batch($options = [])
+    public function batch($options = []): Iterator
     {
         return $this->iterator($options);
     }
 
     /**
-     * 遍历每个元素
+     * 单个遍历元素
+     * @return Iterator
      * @author Verdient。
      */
-    public function each($options = [])
+    public function each($options = []): Iterator
     {
         foreach ($this->batch($options) as $rows) {
             foreach ($rows as $row) {
@@ -77,8 +79,12 @@ trait HasList
         }
     }
 
-
-    protected function listWithRetry($options, $limit = 3)
+    /**
+     * 带有重试的获取列表
+     * @return Response
+     * @author Verdient。
+     */
+    protected function listWithRetry($options, $limit = 3): Response
     {
         $exception = null;
         for ($i = 0; $i < $limit; $i++) {

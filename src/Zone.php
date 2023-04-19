@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Verdient\Cloudflare\Zone;
+namespace Verdient\Cloudflare;
 
 use Verdient\Cloudflare\API\AbstractClient;
 use Verdient\Cloudflare\API\Response;
-use Verdient\Cloudflare\Traits\Constructible;
 use Verdient\Cloudflare\Traits\HasList;
+use Verdient\Cloudflare\Traits\HasOne;
 
 /**
  * 区域
@@ -15,8 +15,8 @@ use Verdient\Cloudflare\Traits\HasList;
  */
 class Zone extends AbstractClient
 {
-    use Constructible;
     use HasList;
+    use HasOne;
 
     /**
      * @inheritdoc

@@ -16,6 +16,16 @@ trait Configurable
      */
     public function __construct($options = [])
     {
+        $this->configure($options);
+    }
+
+    /**
+     * 配置
+     * @param array $options 选项
+     * @author Verdient。
+     */
+    public function configure($options)
+    {
         foreach ($options as $name => $value) {
             if (property_exists($this, $name)) {
                 if (!$value && $this->$name) {

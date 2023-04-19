@@ -5,29 +5,63 @@ declare(strict_types=1);
 namespace Verdient\Cloudflare\R2;
 
 use Exception;
-use Verdient\Cloudflare\Traits\Constructible;
 use Verdient\http\builder\XmlBuilder;
 
 /**
- * R2
+ * R2 存储桶
  * @author Verdient。
  */
 class R2
 {
-    use Constructible;
+    /**
+     * @var string 账户编号
+     * @author Verdient。
+     */
+    protected $accountId;
+
+    /**
+     * @var string 存储桶
+     * @author Verdient。
+     */
+    protected $bucket;
+
+    /**
+     * @var string 秘钥标识
+     * @author Verdient。
+     */
+    protected $accessKey;
+
+    /**
+     * @var string 授权秘钥
+     * @author Verdient。
+     */
+    protected $accessSecret;
+
+    /**
+     * @var string $accountId 账户编号
+     * @var string $bucket 存储桶
+     * @var string $accessKey 秘钥标识
+     * @var string $accessSecret 授权秘钥
+     */
+    public function __construct($accountId, $bucket, $accessKey, $accessSecret)
+    {
+        $this->accountId = $accountId;
+        $this->bucket = $bucket;
+        $this->accessKey = $accessKey;
+        $this->accessSecret = $accessSecret;
+    }
 
     /**
      * 上传对象
      * @param string $name 名称
      * @param string $content 内容
      * @param array $options 选项
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function putObject($name, $content, $options = [], $bucket = null)
+    public function putObject($name, $content, $options = [])
     {
         $request = $this
-            ->request($name, $bucket)
+            ->request($name)
             ->setMethod('PUT')
             ->setContent((string) $content);
         foreach ($options as $name => $value) {
@@ -45,13 +79,12 @@ class R2
      * @param string $name 名称
      * @param string $content 内容
      * @param array $options 选项
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function putJson($name, $content, $options = [], $bucket = null)
+    public function putJson($name, $content, $options = [])
     {
         $options['Content-Type'] = 'application/json';
-        return $this->putObject($name, $content, $options, $bucket);
+        return $this->putObject($name, $content, $options);
     }
 
     /**
@@ -59,14 +92,13 @@ class R2
      * @param string $name 名称
      * @param string $content 内容
      * @param array $options 选项
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function listObjects($options = [], $bucket = null)
+    public function listObjects($options = [])
     {
         $options['list-type'] = 2;
         $request = $this
-            ->request('', $bucket)
+            ->request('')
             ->setMethod('GET');
         foreach ($options as $name => $value) {
             $request->addQuery($name, $value);
@@ -82,13 +114,12 @@ class R2
      * 删除对象
      * @param string $name 名称
      * @param array $options 选项
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function deleteObject($name, $options = [], $bucket = null)
+    public function deleteObject($name, $options = [])
     {
         $request = $this
-            ->request($name, $bucket)
+            ->request($name)
             ->setMethod('DELETE');
         foreach ($options as $name => $value) {
             $request->addQuery($name, $value);
@@ -103,10 +134,9 @@ class R2
     /**
      * 批量删除对象
      * @param array $objects 要删除的对象
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function deleteObjects($objects, $bucket = null)
+    public function deleteObjects($objects)
     {
         $xmlBuilder = new XmlBuilder;
         $xmlBuilder->charset = 'UTF-8';
@@ -118,7 +148,7 @@ class R2
             ];
         }, $objects));
         $request = $this
-            ->request('', $bucket)
+            ->request('')
             ->addQuery('delete', '')
             ->addHeader('Content-Type', 'application/xml')
             ->setContent($xmlBuilder->toString())
@@ -134,13 +164,12 @@ class R2
      * 获取对象元数据
      * @param string $name 名称
      * @param array $options 选项
-     * @param string $bucket 目录
      * @author Verdient。
      */
-    public function headObject($name, $options = [], $bucket = null)
+    public function headObject($name, $options = [])
     {
         $request = $this
-            ->request($name, $bucket)
+            ->request($name)
             ->setMethod('HEAD');
         foreach ($options as $name => $value) {
             $request->addQuery($name, $value);
@@ -153,67 +182,18 @@ class R2
     }
 
     /**
-     * 清除缓存
-     * @param string $name 名称
-     * @author Verdient。
-     */
-    public function purgeCache($name)
-    {
-        $zoneId = $this->cloudflare()->get('r2ZoneId');
-        $zoneName = $this->cloudflare()->get('r2ZoneName');
-        $res = $this->cloudflare()
-            ->zone()
-            ->purgeCache($zoneId, [
-                'files' => [
-                    'https://' . $zoneName . '/' . $name,
-                    'http://' . $zoneName . '/' . $name
-                ]
-            ]);
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * 批量清除缓存
-     * @param string $prefix 前缀
-     * @author Verdient。
-     */
-    public function purgeCaches($prefix)
-    {
-        $zoneId = $this->cloudflare()->get('r2ZoneId');
-        $zoneName = $this->cloudflare()->get('r2ZoneName');
-        $res = $this->cloudflare()
-            ->zone()
-            ->purgeCache($zoneId, [
-                'prefixes' => [
-                    'https://' . $zoneName . '/' . $prefix,
-                    'http://' . $zoneName . '/' . $prefix
-                ]
-            ]);
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
      * @inheritdoc
      * @author Verdient。
      */
-    public function request($path, $bucket = null): Request
+    public function request($path = ''): Request
     {
-        if (!$bucket) {
-            $bucket = $this->cloudflare()->get('r2Bucket');
-        }
+        $bucket = $this->bucket;
         $request = new Request([
-            'accessKey' => $this->cloudflare()->get('r2AccessKey'),
-            'accessSecret' => $this->cloudflare()->get('r2AccessSecret')
+            'accessKey' => $this->accessKey,
+            'accessSecret' => $this->accessSecret
         ]);
-        $endpoint = $this->cloudflare()->get('r2Endpoint');
-        $accountId = $this->cloudflare()->get('accountId');
-        $request->setUrl("https://$bucket.$accountId.$endpoint/$path");
+        $accountId = $this->accountId;
+        $request->setUrl("https://$bucket.$accountId.r2.cloudflarestorage.com/$path");
         return $request;
     }
 }
