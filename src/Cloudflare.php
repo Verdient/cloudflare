@@ -133,4 +133,15 @@ class Cloudflare
     {
         return $this->_client(DNS::class, $zoneIdentifier, $this->apiAuthorization);
     }
+
+    /**
+     * 防火墙规则
+     * @param string $zoneIdentifier 域编号
+     * @return FirewallRule
+     * @author Verdient。
+     */
+    public function firewallRule($zoneIdentifier)
+    {
+        return $this->_client(FirewallRule::class, $zoneIdentifier, $this->apiAuthorization);
+    }
 }
