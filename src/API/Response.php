@@ -21,8 +21,9 @@ class Response extends AbstractResponse
     protected function normailze(HttpResponse $response): Result
     {
         $result = new Result;
+        $statusCode = $response->getStatusCode();
         $body = $response->getBody();
-        $result->isOK = isset($body['success']) && $body['success'] == true;
+        $result->isOK = $statusCode >= 200 && $statusCode < 300;
         if ($result->isOK) {
             $result->data = $body;
         } else {
