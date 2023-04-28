@@ -70,10 +70,17 @@ trait HasList
             }
             $body = $res->getData();
             $resultInfo = $body['result_info'];
-            $totalPages = isset($resultInfo['total_pages']) ? $resultInfo['total_pages'] : ceil($resultInfo['total_count'] / $resultInfo['per_page']);
-            $continue = $resultInfo['page'] < $totalPages;
-            if ($continue) {
-                $options['page'] = isset($options['page']) ? ($options['page'] + 1) : 2;
+            if (isset($resultInfo['cursor'])) {
+                if (!empty($resultInfo['cursor'])) {
+                    $continue = true;
+                    $options['cursor'] = $resultInfo['cursor'];
+                }
+            } else if (isset($resultInfo['page'])) {
+                $totalPages = isset($resultInfo['total_pages']) ? $resultInfo['total_pages'] : ceil($resultInfo['total_count'] / $resultInfo['per_page']);
+                $continue = $resultInfo['page'] < $totalPages;
+                if ($continue) {
+                    $options['page'] = isset($options['page']) ? ($options['page'] + 1) : 2;
+                }
             }
             yield $body['result'];
         }
