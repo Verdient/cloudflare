@@ -7,6 +7,7 @@ namespace Verdient\Cloudflare;
 use Exception;
 use Verdient\Cloudflare\R2\R2;
 use Verdient\Cloudflare\Traits\Configurable;
+use Verdient\Cloudflare\Traits\HasCachedClient;
 use Verdient\Cloudflare\Zone;
 
 /**
@@ -16,12 +17,7 @@ use Verdient\Cloudflare\Zone;
 class Cloudflare
 {
     use Configurable;
-
-    /**
-     * @var array 缓存的客户端
-     * @author Verdient。
-     */
-    protected $cachedClients = [];
+    use HasCachedClient;
 
     /**
      * @var string 账户编号
@@ -85,21 +81,6 @@ class Cloudflare
     }
 
     /**
-     * 获取客户端
-     * @param string $class 类名
-     * @return mixed
-     * @author Verdient。
-     */
-    protected function _client($class, ...$options)
-    {
-        $key = serialize([$class, $options]);
-        if (!isset($this->cachedClients[$key])) {
-            $this->cachedClients[$key] = new $class(...$options);
-        }
-        return $this->cachedClients[$key];
-    }
-
-    /**
      * R2
      * @param string $bucket 存储桶
      * @return R2
@@ -143,5 +124,16 @@ class Cloudflare
     public function firewallRule($zoneIdentifier)
     {
         return $this->_client(FirewallRule::class, $zoneIdentifier, $this->apiAuthorization);
+    }
+
+    /**
+     * 防火墙规则
+     * @param string $zoneIdentifier 域编号
+     * @return KV
+     * @author Verdient。
+     */
+    public function kv()
+    {
+        return $this->_client(KV::class, $this->accountId, $this->apiAuthorization);
     }
 }

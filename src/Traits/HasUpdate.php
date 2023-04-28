@@ -23,7 +23,7 @@ trait HasUpdate
     {
         return $this
             ->request($identifier)
-            ->setMethod('PATCH')
+            ->setMethod('PUT')
             ->setBody($options)
             ->send();
     }
