@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Verdient\Cloudflare;
 
+use Exception;
 use Verdient\Cloudflare\API\AbstractClient;
 use Verdient\Cloudflare\Traits\HasCachedClient;
 use Verdient\Cloudflare\Traits\HasCreate;
@@ -32,13 +33,21 @@ class KV extends AbstractClient
     protected $accountIdentifier;
 
     /**
-     * @var string $accountIdentifier 账户识别码
-     * @param string $authorization 授权秘钥
+     * @var string 命名空间标识符
      * @author Verdient。
      */
-    public function __construct($accountIdentifier, $authorization)
+    protected $namespaceIdentifier;
+
+    /**
+     * @var string $accountIdentifier 账户识别码
+     * @param string $authorization 授权秘钥
+     * @param string $namespaceIdentifier 命名空间标识符
+     * @author Verdient。
+     */
+    public function __construct($accountIdentifier, $authorization, $namespaceIdentifier)
     {
         $this->accountIdentifier = $accountIdentifier;
+        $this->namespaceIdentifier = $namespaceIdentifier;
         parent::__construct($authorization);
     }
 
@@ -48,8 +57,14 @@ class KV extends AbstractClient
      * @return KVNamespace
      * @author Verdient。
      */
-    public function namespace($identifier)
+    public function namespace($identifier = null)
     {
+        if (!$identifier) {
+            if (!$this->namespaceIdentifier) {
+                throw new Exception('Namespace identifier can not be blank');
+            }
+            $identifier = $this->namespaceIdentifier;
+        }
         return $this->_client(KVNamespace::class, $this->accountIdentifier, $identifier, $this->authorization);
     }
 

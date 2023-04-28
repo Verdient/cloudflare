@@ -134,6 +134,6 @@ class Cloudflare
      */
     public function kv()
     {
-        return $this->_client(KV::class, $this->accountId, $this->apiAuthorization);
+        return $this->_client(KV::class, $this->accountId, $this->apiAuthorization, $this->kvNamespaceId);
     }
 }
