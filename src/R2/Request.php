@@ -139,7 +139,7 @@ class Request extends HttpRequest
      */
     protected function getCanonicalizedQuery()
     {
-        $query = $this->getQuery();
+        $query = array_filter($this->getQuery());
         unset($query['X-Amz-Signature']);
         if (empty($query)) {
             return '';
