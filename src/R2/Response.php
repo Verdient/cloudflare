@@ -9,7 +9,7 @@ use Verdient\HttpAPI\AbstractResponse;
 use Verdient\HttpAPI\Result;
 
 /**
- * 请求
+ * 响应
  * @author Verdient。
  */
 class Response extends AbstractResponse

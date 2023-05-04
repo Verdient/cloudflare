@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Verdient\Cloudflare\R2;
 
-use Exception;
-use Verdient\http\builder\XmlBuilder;
+use Verdient\Cloudflare\Traits\HasCachedClient;
 
 /**
  * R2 存储桶
@@ -13,6 +12,8 @@ use Verdient\http\builder\XmlBuilder;
  */
 class R2
 {
+    use HasCachedClient;
+
     /**
      * @var string 账户编号
      * @author Verdient。
@@ -52,167 +53,22 @@ class R2
     }
 
     /**
-     * 上传对象
-     * @param string $name 名称
-     * @param string $content 内容
-     * @param array $options 选项
+     * 对象
+     * @return Objects
      * @author Verdient。
      */
-    public function putObject($name, $content, $options = [])
+    public function object()
     {
-        $request = $this
-            ->request($name)
-            ->setMethod('PUT')
-            ->setContent((string) $content);
-        foreach ($options as $name => $value) {
-            $request->addHeader($name, $value);
-        }
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
+        return $this->_client(Objects::class, $this->accountId, $this->accessKey, $this->accessSecret, $this->bucket);
     }
 
     /**
-     * 上传Json对象
-     * @param string $name 名称
-     * @param string $content 内容
-     * @param array $options 选项
+     * 存储桶
+     * @return Bucket
      * @author Verdient。
      */
-    public function putJson($name, $content, $options = [])
+    public function bucket()
     {
-        $options['Content-Type'] = 'application/json';
-        return $this->putObject($name, $content, $options);
-    }
-
-    /**
-     * 获取对象
-     * @param string $name 名称
-     * @param array $options 选项
-     * @author Verdient。
-     */
-    public function getObject($name, $options = [])
-    {
-        $request = $this
-            ->request($name)
-            ->setMethod('GET')
-            ->setQuery($options);
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * 枚举对象
-     * @param string $name 名称
-     * @param string $content 内容
-     * @param array $options 选项
-     * @author Verdient。
-     */
-    public function listObjects($options = [])
-    {
-        $options['list-type'] = 2;
-        $request = $this
-            ->request('')
-            ->setMethod('GET');
-        foreach ($options as $name => $value) {
-            $request->addQuery($name, $value);
-        }
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * 删除对象
-     * @param string $name 名称
-     * @param array $options 选项
-     * @author Verdient。
-     */
-    public function deleteObject($name, $options = [])
-    {
-        $request = $this
-            ->request($name)
-            ->setMethod('DELETE');
-        foreach ($options as $name => $value) {
-            $request->addQuery($name, $value);
-        }
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * 批量删除对象
-     * @param array $objects 要删除的对象
-     * @author Verdient。
-     */
-    public function deleteObjects($objects)
-    {
-        $xmlBuilder = new XmlBuilder;
-        $xmlBuilder->charset = 'UTF-8';
-        $xmlBuilder->rootTag = 'Delete';
-        $xmlBuilder->itemTag = 'Object';
-        $xmlBuilder->setElements(array_map(function ($value) {
-            return [
-                'Key' => mb_convert_encoding($value, 'UTF-8', 'auto')
-            ];
-        }, $objects));
-        $request = $this
-            ->request('')
-            ->addQuery('delete', '')
-            ->addHeader('Content-Type', 'application/xml')
-            ->setContent($xmlBuilder->toString())
-            ->setMethod('POST');
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * 获取对象元数据
-     * @param string $name 名称
-     * @param array $options 选项
-     * @author Verdient。
-     */
-    public function headObject($name, $options = [])
-    {
-        $request = $this
-            ->request($name)
-            ->setMethod('HEAD');
-        foreach ($options as $name => $value) {
-            $request->addQuery($name, $value);
-        }
-        $res = $request->send();
-        if (!$res->getIsOK()) {
-            throw new Exception($res->getErrorMessage());
-        }
-        return $res;
-    }
-
-    /**
-     * @inheritdoc
-     * @author Verdient。
-     */
-    public function request($path = ''): Request
-    {
-        $bucket = $this->bucket;
-        $request = new Request([
-            'accessKey' => $this->accessKey,
-            'accessSecret' => $this->accessSecret
-        ]);
-        $accountId = $this->accountId;
-        $request->setUrl("https://$bucket.$accountId.r2.cloudflarestorage.com/$path");
-        return $request;
+        return $this->_client(Bucket::class, $this->accountId, $this->accessKey, $this->accessSecret);
     }
 }
