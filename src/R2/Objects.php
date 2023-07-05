@@ -185,7 +185,7 @@ class Objects extends AbstractClient
                 throw new Exception($res->getErrorMessage());
             }
             $resData = $res->getData();
-            yield $resData['Contents'];
+            yield $resData['Contents'] ?? [];
             $hasMore = isset($resData['NextContinuationToken']);
             if ($hasMore) {
                 $continuationToken = $resData['NextContinuationToken'];
