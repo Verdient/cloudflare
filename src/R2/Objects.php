@@ -185,7 +185,14 @@ class Objects extends AbstractClient
                 throw new Exception($res->getErrorMessage());
             }
             $resData = $res->getData();
-            yield $resData['Contents'] ?? [];
+            if (!empty($resData['Contents'])) {
+                if (is_array(reset($resData['Contents']))) {
+                    yield $resData['Contents'];
+                } else {
+                    yield [$resData['Contents']];
+                }
+            }
+            yield [];
             $hasMore = isset($resData['NextContinuationToken']);
             if ($hasMore) {
                 $continuationToken = $resData['NextContinuationToken'];
