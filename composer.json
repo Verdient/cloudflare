@@ -2,7 +2,7 @@
     "name": "verdient/cloudflare",
     "type": "library",
     "require": {
-        "verdient/http-api": "^0.0"
+        "verdient/http-api": "^1.0"
     },
     "autoload": {
         "psr-4": {
