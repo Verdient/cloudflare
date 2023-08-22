@@ -32,7 +32,6 @@ class Request extends HttpRequest
     public function send()
     {
         $date = gmdate('Ymd\THis\Z');
-        $this->prepare();
         $contentHash = hash('sha256', $this->getContent());
         $this->addHeader('Host', parse_url($this->getUrl(), PHP_URL_HOST));
         $this->addHeader('X-Amz-Date', $date);
